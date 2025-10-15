@@ -1,18 +1,13 @@
 import { supabase, TABLES } from '../config/supabase'
 import { mockDataService } from './mockDataService'
+import mcpService from './mcpService.js'
 
 class DataService {
   // 学生相关操作
   async getStudentProfile(studentId) {
     try {
-      const { data, error } = await supabase
-        .from(TABLES.STUDENTS)
-        .select('*')
-        .eq('id', studentId)
-        .single()
-      
-      if (error) throw error
-      return data
+      // 优先使用MCP服务
+      return await mcpService.getStudentData(studentId)
     } catch (error) {
       console.error('获取学生档案失败:', error)
       // 返回模拟数据
@@ -32,15 +27,7 @@ class DataService {
 
   async getStudentLearningProgress(studentId) {
     try {
-      const { data, error } = await supabase
-        .from(TABLES.LEARNING_ACTIVITIES)
-        .select('*')
-        .eq('student_id', studentId)
-        .order('created_at', { ascending: false })
-        .limit(100)
-      
-      if (error) throw error
-      return data
+      return await mcpService.getLearningProgress(studentId)
     } catch (error) {
       console.error('获取学习进度失败:', error)
       return []
@@ -49,18 +36,13 @@ class DataService {
 
   async updateStudentProgress(studentId, poemId, score) {
     try {
-      const { data, error } = await supabase
-        .from(TABLES.LEARNING_ACTIVITIES)
-        .insert({
-          student_id: studentId,
-          poem_id: poemId,
-          activity_type: 'poem_study',
-          score: score,
-          duration: 30
-        })
-      
-      if (error) throw error
-      return data
+      return await mcpService.recordLearningActivity({
+        student_id: studentId,
+        poem_id: poemId,
+        activity_type: 'poem_study',
+        score: score,
+        duration: 30
+      })
     } catch (error) {
       console.error('更新学习进度失败:', error)
       return null
@@ -157,12 +139,8 @@ class DataService {
 
   async getTotalStudents() {
     try {
-      const { count, error } = await supabase
-        .from(TABLES.STUDENTS)
-        .select('*', { count: 'exact', head: true })
-      
-      if (error) throw error
-      return count || 1600
+      const analytics = await mcpService.getAnalyticsData('college_overview')
+      return analytics.totalStudents || 1600
     } catch (error) {
       return 1600
     }
@@ -170,12 +148,8 @@ class DataService {
 
   async getTotalTeachers() {
     try {
-      const { count, error } = await supabase
-        .from(TABLES.TEACHERS)
-        .select('*', { count: 'exact', head: true })
-      
-      if (error) throw error
-      return count || 45
+      const analytics = await mcpService.getAnalyticsData('college_overview')
+      return analytics.totalTeachers || 45
     } catch (error) {
       return 45
     }
@@ -183,12 +157,8 @@ class DataService {
 
   async getTotalCourses() {
     try {
-      const { count, error } = await supabase
-        .from(TABLES.COURSES)
-        .select('*', { count: 'exact', head: true })
-      
-      if (error) throw error
-      return count || 32
+      const analytics = await mcpService.getAnalyticsData('college_overview')
+      return analytics.activeClasses || 32
     } catch (error) {
       return 32
     }
@@ -197,18 +167,7 @@ class DataService {
   // 诗歌数据
   async getPoems(category = 'all', limit = null) {
     try {
-      const poems = await mockDataService.getPoems()
-      let filteredPoems = poems
-
-      if (category !== 'all') {
-        filteredPoems = poems.filter(p => p.category === category)
-      }
-
-      if (limit) {
-        filteredPoems = filteredPoems.slice(0, limit)
-      }
-
-      return filteredPoems
+      return await mcpService.getPoemsData(category, limit)
     } catch (error) {
       console.error('获取诗歌数据失败:', error)
       return await mockDataService.getPoems()
@@ -227,19 +186,12 @@ class DataService {
 
   // 实时数据订阅
   subscribeToStudentProgress(studentId, callback) {
-    return supabase
-      .channel('student-progress')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: TABLES.LEARNING_ACTIVITIES,
-          filter: `student_id=eq.${studentId}`
-        },
-        callback
-      )
-      .subscribe()
+    return mcpService.subscribeToUpdates(
+      'student_learning_activities',
+      'INSERT',
+      callback,
+      { student_id: studentId }
+    )
   }
 }
 

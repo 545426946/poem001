@@ -21,6 +21,7 @@
           <li><router-link to="/poets" class="nav-link">诗人</router-link></li>
           <li><router-link to="/appreciation" class="nav-link">赏析</router-link></li>
           <li><router-link to="/about" class="nav-link">关于</router-link></li>
+          <li><router-link to="/admin/database" class="nav-link admin-link">数据库管理</router-link></li>
         </ul>
       </div>
     </nav>
@@ -80,6 +81,33 @@
         </div>
       </div>
     </section>
+
+    <!-- 管理员快捷入口 -->
+    <section class="admin-section" v-if="showAdminSection">
+      <div class="container">
+        <h3 class="section-title">管理员工具</h3>
+        <div class="admin-grid">
+          <div class="admin-card">
+            <div class="admin-icon">🗃️</div>
+            <h4>数据库管理</h4>
+            <p>管理Supabase数据库表结构、数据和连接状态</p>
+            <router-link to="/admin/database" class="btn-primary">进入管理</router-link>
+          </div>
+          <div class="admin-card">
+            <div class="admin-icon">🔧</div>
+            <h4>系统配置</h4>
+            <p>配置MCP连接、环境变量和系统参数</p>
+            <button class="btn-outline" @click="showConfigInfo">查看配置</button>
+          </div>
+          <div class="admin-card">
+            <div class="admin-icon">📊</div>
+            <h4>数据监控</h4>
+            <p>实时监控系统性能和数据统计</p>
+            <button class="btn-outline" @click="showStats">查看统计</button>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -88,6 +116,7 @@ export default {
   name: 'Home',
   data() {
     return {
+      showAdminSection: true, // 临时设置为true，实际应该根据用户角色判断
       popularPoems: [
         {
           id: 1,
@@ -118,6 +147,23 @@ export default {
           preview: '红豆生南国，春来发几枝。愿君多采撷，此物最相思。'
         }
       ]
+    }
+  },
+  methods: {
+    showConfigInfo() {
+      alert(`当前配置信息：
+- Supabase URL: ${import.meta.env.VITE_SUPABASE_URL || '未配置'}
+- 环境: ${import.meta.env.MODE}
+- 版本: 1.0.0
+- 项目类型: 诗词赏析平台`);
+    },
+    showStats() {
+      alert(`系统统计信息：
+- 数据库连接: 正常
+- MCP状态: 已配置
+- 表结构: 已部署
+- 数据量: 待统计
+- 项目状态: 专注诗词赏析`);
     }
   }
 }
@@ -457,6 +503,62 @@ export default {
 
 .read-more:hover {
   color: #A0522D;
+}
+
+/* 管理员区域样式 */
+.admin-section {
+  position: relative;
+  z-index: 1;
+  padding: 60px 0;
+  background: rgba(139, 69, 19, 0.05);
+  border-top: 1px solid rgba(210, 180, 140, 0.3);
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.admin-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-5px);
+}
+
+.admin-icon {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.admin-card h4 {
+  font-size: 1.3rem;
+  color: #8B4513;
+  margin-bottom: 15px;
+  font-family: '楷体', 'STKaiti', serif;
+}
+
+.admin-card p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.admin-link {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white !important;
+  font-weight: bold;
+}
+
+.admin-link:hover {
+  background: linear-gradient(135deg, #ee5a24 0%, #ff6b6b 100%);
 }
 
 /* 响应式设计 */

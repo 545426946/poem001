@@ -1,44 +1,50 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/views/Home.vue'
-import Poems from '@/views/Poems.vue'
-import Poets from '@/views/Poets.vue'
-import Appreciation from '@/views/Appreciation.vue'
-import About from '@/views/About.vue'
+import Home from '../views/Home.vue'
+import About from '../views/About.vue'
+import Poems from '../views/Poems.vue'
+import Poets from '../views/Poets.vue'
+import PoetryView from '../views/PoetryView.vue'
+import Appreciation from '../views/Appreciation.vue'
+import DatabaseAdmin from '../views/DatabaseAdmin.vue'
 
-export const routes = [
+const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home,
-    meta: { title: '古韵诗香 - 诗词赏析平台' }
-  },
-  {
-    path: '/poems',
-    name: 'Poems',
-    component: Poems,
-    meta: { title: '诗词库 - 古韵诗香' }
-  },
-  {
-    path: '/poets',
-    name: 'Poets',
-    component: Poets,
-    meta: { title: '诗人名录 - 古韵诗香' }
-  },
-  {
-    path: '/appreciation',
-    name: 'Appreciation',
-    component: Appreciation,
-    meta: { title: '诗词赏析 - 古韵诗香' }
+    component: Home
   },
   {
     path: '/about',
     name: 'About',
-    component: About,
-    meta: { title: '关于我们 - 古韵诗香' }
+    component: About
   },
   {
-    path: '/:pathMatch(.*)*',
-    redirect: '/'
+    path: '/poems',
+    name: 'Poems',
+    component: Poems
+  },
+  {
+    path: '/poets',
+    name: 'Poets',
+    component: Poets
+  },
+  {
+    path: '/poetry/:id',
+    name: 'PoetryView',
+    component: PoetryView,
+    props: true
+  },
+  {
+    path: '/appreciation/:id',
+    name: 'Appreciation',
+    component: Appreciation,
+    props: true
+  },
+  {
+    path: '/admin/database',
+    name: 'DatabaseAdmin',
+    component: DatabaseAdmin,
+    meta: { requiresAdmin: true }
   }
 ]
 
@@ -47,15 +53,19 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫 - 页面标题设置
+// 路由守卫 - 检查管理员权限
 router.beforeEach((to, from, next) => {
-  // 设置页面标题
-  if (to.meta.title) {
-    document.title = to.meta.title
+  if (to.meta.requiresAdmin) {
+    // 这里可以添加管理员权限检查逻辑
+    const isAdmin = true // 临时设置为true，实际应该检查用户角色
+    if (isAdmin) {
+      next()
+    } else {
+      next('/')
+    }
+  } else {
+    next()
   }
-  next()
 })
 
 export default router
-
-

@@ -386,6 +386,55 @@ class MockDataService {
       }
     })
   }
+
+  // 新增方法 - 用户档案
+  async getUserProfile(userId) {
+    // 根据ID判断是学生还是教师
+    if (userId.startsWith('S')) {
+      return this.getStudent(userId)
+    } else if (userId.startsWith('T')) {
+      return this.getTeacher(userId)
+    }
+    return null
+  }
+
+  // 新增方法 - 教师档案
+  async getTeacherProfile(teacherId) {
+    return this.getTeacher(teacherId)
+  }
+
+  // 新增方法 - 学习进度
+  async getLearningProgress(studentId) {
+    return this.learningProgress.filter(p => p.studentId === studentId)
+  }
+
+  // 新增方法 - 分析数据
+  async getAnalyticsData(type, filters = {}) {
+    switch (type) {
+      case 'college_overview':
+        return this.getCollegeOverview()
+      case 'teacher_stats':
+        return this.getTeacherStats()
+      case 'student_progress':
+        const student = await this.getStudent(filters.studentId)
+        return student ? student.learningProgress : []
+      default:
+        throw new Error(`未知的分析类型: ${type}`)
+    }
+  }
+
+  // 新增方法 - 知识搜索
+  async searchKnowledge(query, options = {}) {
+    // 简单的关键词搜索
+    const results = this.poems.filter(poem => 
+      poem.title.includes(query) || 
+      poem.author.includes(query) ||
+      poem.content.includes(query) ||
+      (poem.keywords && poem.keywords.some(keyword => keyword.includes(query)))
+    )
+    
+    return results.slice(0, options.limit || 5)
+  }
 }
 
 export const mockDataService = new MockDataService()
