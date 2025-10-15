@@ -46,39 +46,41 @@
 </template>
 
 <script>
+import mcpService from '../services/mcpService.js'
+
 export default {
   name: 'Appreciation',
   data() {
     return {
-      articles: [
-        {
-          id: 1,
-          title: '《静夜思》中的思乡情怀',
-          poemTitle: '静夜思',
-          poetName: '李白',
-          summary: '分析李白在《静夜思》中如何通过明月意象表达深切的思乡之情...',
-          readTime: '5分钟',
-          difficulty: '初级'
-        },
-        {
-          id: 2,
-          title: '《春晓》的自然美学',
-          poemTitle: '春晓',
-          poetName: '孟浩然',
-          summary: '探讨孟浩然《春晓》中展现的自然观察力和生活情趣...',
-          readTime: '8分钟',
-          difficulty: '初级'
-        },
-        {
-          id: 3,
-          title: '苏轼《水调歌头》的哲学思考',
-          poemTitle: '水调歌头·明月几时有',
-          poetName: '苏轼',
-          summary: '解读苏轼词作中的人生哲理和宇宙观，感受豪放词风的魅力...',
-          readTime: '12分钟',
-          difficulty: '中级'
-        }
-      ]
+      articles: [],
+      loading: true
+    }
+  },
+  async mounted() {
+    await this.loadArticles()
+  },
+  methods: {
+    async loadArticles() {
+      try {
+        this.loading = true
+        const poemsData = await mcpService.getPoems()
+        
+        // 基于诗词数据生成赏析文章
+        this.articles = poemsData.slice(0, 5).map((poem, index) => ({
+          id: poem.id,
+          title: `《${poem.title}》的文学价值`,
+          poemTitle: poem.title,
+          poetName: poem.author,
+          summary: poem.appreciation || `深入分析${poem.author}的《${poem.title}》的艺术特色和文学价值...`,
+          readTime: `${Math.max(5, Math.floor(poem.content?.length || 0) * 2)}分钟`,
+          difficulty: index % 3 === 0 ? '初级' : index % 3 === 1 ? '中级' : '高级'
+        }))
+      } catch (error) {
+        console.error('加载赏析文章失败:', error)
+        this.articles = []
+      } finally {
+        this.loading = false
+      }
     }
   }
 }

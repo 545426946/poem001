@@ -111,6 +111,8 @@
 </template>
 
 <script>
+import mcpService from '../services/mcpService.js'
+
 export default {
   name: 'PoetryView',
   data() {
@@ -119,265 +121,24 @@ export default {
       activeCategory: 'all',
       searchQuery: '',
       categories: [
-        { id: 'all', name: '全部诗词', count: 25 },
-        { id: 'love', name: '爱情诗词', count: 8 },
-        { id: 'landscape', name: '山水田园', count: 6 },
-        { id: 'farewell', name: '送别思念', count: 5 },
-        { id: 'patriotic', name: '爱国忧民', count: 6 }
+        { id: 'all', name: '全部诗词', count: 0 },
+        { id: 'love', name: '爱情诗词', count: 0 },
+        { id: 'landscape', name: '山水田园', count: 0 },
+        { id: 'farewell', name: '送别思念', count: 0 },
+        { id: 'patriotic', name: '爱国忧民', count: 0 }
       ],
-      topPoets: [
-        { name: '李白', count: 5 },
-        { name: '杜甫', count: 4 },
-        { name: '苏轼', count: 4 },
-        { name: '白居易', count: 3 },
-        { name: '王维', count: 3 }
-      ],
+      topPoets: [],
       todayRecommendation: {
-        title: '水调歌头·明月几时有',
-        author: '苏轼',
-        preview: '明月几时有？把酒问青天。不知天上宫阙，今夕是何年。'
+        title: '',
+        author: '',
+        preview: ''
       },
-      poems: [
-        // 唐诗
-        {
-          id: 1,
-          title: '静夜思',
-          author: '李白',
-          dynasty: '唐',
-          category: 'love',
-          tags: ['思乡', '明月'],
-          content: [
-            '床前明月光，',
-            '疑是地上霜。',
-            '举头望明月，',
-            '低头思故乡。'
-          ],
-          appreciation: '这首诗写的是在寂静的月夜思念家乡的感受。前两句写诗人在作客他乡的特定环境中一刹那间所产生的错觉；后两句通过动作神态的刻画，深化思乡之情。'
-        },
-        {
-          id: 2,
-          title: '春晓',
-          author: '孟浩然',
-          dynasty: '唐',
-          category: 'landscape',
-          tags: ['春天', '自然'],
-          content: [
-            '春眠不觉晓，',
-            '处处闻啼鸟。',
-            '夜来风雨声，',
-            '花落知多少。'
-          ],
-          appreciation: '这首诗是诗人隐居在鹿门山时所作，意境十分优美。诗人抓住春天的早晨刚刚醒来时的一瞬间展开描写和联想，生动地表达了诗人对春天的热爱和怜惜之情。'
-        },
-        {
-          id: 3,
-          title: '登鹳雀楼',
-          author: '王之涣',
-          dynasty: '唐',
-          category: 'landscape',
-          tags: ['登高', '望远'],
-          content: [
-            '白日依山尽，',
-            '黄河入海流。',
-            '欲穷千里目，',
-            '更上一层楼。'
-          ],
-          appreciation: '这首诗写诗人在登高望远中表现出来的不凡的胸襟抱负，反映了盛唐时期人们积极向上的进取精神。前两句写所见，后两句写所想。'
-        },
-        {
-          id: 4,
-          title: '相思',
-          author: '王维',
-          dynasty: '唐',
-          category: 'love',
-          tags: ['相思', '红豆'],
-          content: [
-            '红豆生南国，',
-            '春来发几枝。',
-            '愿君多采撷，',
-            '此物最相思。'
-          ],
-          appreciation: '这是借咏物而寄相思的诗，是眷怀友人之作。全诗情调健美高雅，怀思饱满奔放，语言朴素无华，韵律和谐柔美。'
-        },
-        {
-          id: 5,
-          title: '黄鹤楼送孟浩然之广陵',
-          author: '李白',
-          dynasty: '唐',
-          category: 'farewell',
-          tags: ['送别', '友情'],
-          content: [
-            '故人西辞黄鹤楼，',
-            '烟花三月下扬州。',
-            '孤帆远影碧空尽，',
-            '唯见长江天际流。'
-          ],
-          appreciation: '这首诗是李白出蜀壮游期间的作品，写诗人送别友人时无限依恋的感情，也写出祖国河山的壮丽美好。'
-        },
-        {
-          id: 6,
-          title: '春望',
-          author: '杜甫',
-          dynasty: '唐',
-          category: 'patriotic',
-          tags: ['忧国', '思家'],
-          content: [
-            '国破山河在，',
-            '城春草木深。',
-            '感时花溅泪，',
-            '恨别鸟惊心。',
-            '烽火连三月，',
-            '家书抵万金。',
-            '白头搔更短，',
-            '浑欲不胜簪。'
-          ],
-          appreciation: '这首诗全篇情景交融，感情深沉，而又含蓄凝练，言简意赅，充分体现了"沉郁顿挫"的艺术风格。'
-        },
-        {
-          id: 7,
-          title: '望庐山瀑布',
-          author: '李白',
-          dynasty: '唐',
-          category: 'landscape',
-          tags: ['瀑布', '庐山'],
-          content: [
-            '日照香炉生紫烟，',
-            '遥看瀑布挂前川。',
-            '飞流直下三千尺，',
-            '疑是银河落九天。'
-          ],
-          appreciation: '这首诗形象地描绘了庐山瀑布雄奇壮丽的景色，反映了诗人对祖国大好河山的无限热爱。'
-        },
-        {
-          id: 8,
-          title: '江雪',
-          author: '柳宗元',
-          dynasty: '唐',
-          category: 'landscape',
-          tags: ['冬景', '孤独'],
-          content: [
-            '千山鸟飞绝，',
-            '万径人踪灭。',
-            '孤舟蓑笠翁，',
-            '独钓寒江雪。'
-          ],
-          appreciation: '诗人只用了二十个字，就描绘了一幅幽静寒冷的画面：在下着大雪的江面上，一叶小舟，一个老渔翁，独自在寒冷的江心垂钓。'
-        },
-        // 宋词
-        {
-          id: 9,
-          title: '水调歌头·明月几时有',
-          author: '苏轼',
-          dynasty: '宋',
-          category: 'love',
-          tags: ['中秋', '思念'],
-          content: [
-            '明月几时有？把酒问青天。',
-            '不知天上宫阙，今夕是何年。',
-            '我欲乘风归去，又恐琼楼玉宇，',
-            '高处不胜寒。',
-            '起舞弄清影，何似在人间。'
-          ],
-          appreciation: '此词是中秋望月怀人之作，表达了对胞弟苏辙的无限怀念。词人运用形象描绘手法，勾勒出一种皓月当空、亲人千里、孤高旷远的境界氛围。'
-        },
-        {
-          id: 10,
-          title: '声声慢·寻寻觅觅',
-          author: '李清照',
-          dynasty: '宋',
-          category: 'love',
-          tags: ['愁绪', '孤独'],
-          content: [
-            '寻寻觅觅，冷冷清清，',
-            '凄凄惨惨戚戚。',
-            '乍暖还寒时候，最难将息。',
-            '三杯两盏淡酒，',
-            '怎敌他、晚来风急？'
-          ],
-          appreciation: '作品通过描写残秋所见、所闻、所感，抒发自己因国破家亡、天涯沦落而产生的孤寂落寞、悲凉愁苦的心绪，具有浓厚的时代色彩。'
-        },
-        {
-          id: 11,
-          title: '满江红·写怀',
-          author: '岳飞',
-          dynasty: '宋',
-          category: 'patriotic',
-          tags: ['爱国', '壮志'],
-          content: [
-            '怒发冲冠，凭栏处、潇潇雨歇。',
-            '抬望眼，仰天长啸，壮怀激烈。',
-            '三十功名尘与土，',
-            '八千里路云和月。',
-            '莫等闲、白了少年头，空悲切！'
-          ],
-          appreciation: '此词上片抒写作者对中原重陷敌手的悲愤，对局势前功尽弃的痛惜，表达了自己继续努力争取壮年立功的心愿；下片抒写作者对民族敌人的深仇大恨，对祖国统一的殷切愿望。'
-        },
-        {
-          id: 12,
-          title: '青玉案·元夕',
-          author: '辛弃疾',
-          dynasty: '宋',
-          category: 'love',
-          tags: ['元宵', '爱情'],
-          content: [
-            '东风夜放花千树，',
-            '更吹落、星如雨。',
-            '宝马雕车香满路。',
-            '凤箫声动，玉壶光转，',
-            '一夜鱼龙舞。'
-          ],
-          appreciation: '此词从极力渲染元宵节绚丽多彩的热闹场面入手，反衬出一个孤高淡泊、超群拔俗、不同于金翠脂粉的女性形象，寄托着作者政治失意后不愿与世俗同流合污的孤高品格。'
-        },
-        // 更多诗词...
-        {
-          id: 13,
-          title: '悯农',
-          author: '李绅',
-          dynasty: '唐',
-          category: 'patriotic',
-          tags: ['农民', '劳动'],
-          content: [
-            '锄禾日当午，',
-            '汗滴禾下土。',
-            '谁知盘中餐，',
-            '粒粒皆辛苦。'
-          ],
-          appreciation: '这首诗语言朴实无华，浅显易懂，但却十分感人，主要原因是由于这首诗所抒写的内容是人们经常接触到的最熟悉的事情。'
-        },
-        {
-          id: 14,
-          title: '枫桥夜泊',
-          author: '张继',
-          dynasty: '唐',
-          category: 'landscape',
-          tags: ['夜景', '思乡'],
-          content: [
-            '月落乌啼霜满天，',
-            '江枫渔火对愁眠。',
-            '姑苏城外寒山寺，',
-            '夜半钟声到客船。'
-          ],
-          appreciation: '这首七绝以一"愁"字统起。前二句意象密集：落月、啼乌、满天霜、江枫、渔火、不眠人，造成一种意韵浓郁的审美情境。'
-        },
-        {
-          id: 15,
-          title: '游子吟',
-          author: '孟郊',
-          dynasty: '唐',
-          category: 'love',
-          tags: ['母爱', '亲情'],
-          content: [
-            '慈母手中线，',
-            '游子身上衣。',
-            '临行密密缝，',
-            '意恐迟迟归。',
-            '谁言寸草心，',
-            '报得三春晖。'
-          ],
-          appreciation: '这是一首母爱的颂歌。全诗共六句三十字，采用白描的手法，通过回忆一个看似平常的临行前缝衣的场景，凸显并歌颂了母爱的伟大与无私。'
-        }
-      ]
+      poems: [],
+      loading: true
     }
+  },
+  async mounted() {
+    await this.loadPoems()
   },
   computed: {
     filteredCategories() {
@@ -387,6 +148,64 @@ export default {
     }
   },
   methods: {
+    async loadPoems() {
+      try {
+        this.loading = true
+        const poemsData = await mcpService.getPoems()
+        this.poems = poemsData.map(poem => ({
+          id: poem.id,
+          title: poem.title,
+          author: poem.author,
+          dynasty: poem.dynasty,
+          category: poem.category,
+          tags: poem.tags || [],
+          content: poem.content ? poem.content.split('\n').filter(line => line.trim()) : [],
+          appreciation: poem.appreciation || ''
+        }))
+        
+        // 更新分类计数
+        this.updateCategoryCounts()
+        // 更新热门诗人
+        this.updateTopPoets()
+        // 设置今日推荐
+        this.setTodayRecommendation()
+      } catch (error) {
+        console.error('加载诗词数据失败:', error)
+        this.poems = []
+      } finally {
+        this.loading = false
+      }
+    },
+    updateCategoryCounts() {
+      this.categories.forEach(category => {
+        if (category.id === 'all') {
+          category.count = this.poems.length
+        } else {
+          category.count = this.poems.filter(poem => poem.category === category.id).length
+        }
+      })
+    },
+    updateTopPoets() {
+      const poetCounts = {}
+      this.poems.forEach(poem => {
+        poetCounts[poem.author] = (poetCounts[poem.author] || 0) + 1
+      })
+      
+      this.topPoets = Object.entries(poetCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+    },
+    setTodayRecommendation() {
+      if (this.poems.length > 0) {
+        const randomPoem = this.poems[Math.floor(Math.random() * this.poems.length)]
+        this.todayRecommendation = {
+          title: randomPoem.title,
+          author: randomPoem.author,
+          preview: randomPoem.content.slice(0, 2).join(' ')
+        }
+      }
+    },
     setActiveSection(section) {
       this.activeSection = section
     },

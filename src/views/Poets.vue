@@ -75,56 +75,9 @@ export default {
     return {
       searchQuery: '',
       selectedDynasty: '',
-      poets: [
-        {
-          id: 1,
-          name: '李白',
-          dynasty: '唐',
-          bio: '唐代伟大的浪漫主义诗人，被后人誉为"诗仙"。',
-          worksCount: 1000,
-          style: '豪放飘逸'
-        },
-        {
-          id: 2,
-          name: '杜甫',
-          dynasty: '唐',
-          bio: '唐代伟大的现实主义诗人，被尊为"诗圣"。',
-          worksCount: 1400,
-          style: '沉郁顿挫'
-        },
-        {
-          id: 3,
-          name: '苏轼',
-          dynasty: '宋',
-          bio: '北宋文学家、书画家，豪放派词人的代表。',
-          worksCount: 2700,
-          style: '豪放洒脱'
-        },
-        {
-          id: 4,
-          name: '李清照',
-          dynasty: '宋',
-          bio: '宋代女词人，婉约派代表，有"千古第一才女"之称。',
-          worksCount: 78,
-          style: '婉约细腻'
-        },
-        {
-          id: 5,
-          name: '白居易',
-          dynasty: '唐',
-          bio: '唐代伟大的现实主义诗人，新乐府运动的倡导者。',
-          worksCount: 2800,
-          style: '通俗易懂'
-        },
-        {
-          id: 6,
-          name: '王维',
-          dynasty: '唐',
-          bio: '唐代著名诗人、画家，被誉为"诗佛"。',
-          worksCount: 400,
-          style: '清新淡远'
-        }
-      ]
+      poets: [],
+      loading: true,
+      error: null
     }
   },
   computed: {
@@ -143,6 +96,30 @@ export default {
       }
       
       return filtered;
+    }
+  },
+  
+  async mounted() {
+    await this.fetchPoets();
+  },
+  
+  methods: {
+    async fetchPoets() {
+      try {
+        this.loading = true;
+        const { data, error } = await this.$supabase
+          .from('poets')
+          .select('*')
+          .order('name');
+          
+        if (error) throw error;
+        this.poets = data;
+      } catch (err) {
+        console.error('获取诗人数据失败:', err);
+        this.error = '获取诗人数据失败，请检查网络连接';
+      } finally {
+        this.loading = false;
+      }
     }
   }
 }

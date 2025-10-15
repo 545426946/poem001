@@ -98,6 +98,8 @@
 </template>
 
 <script>
+import mcpService from '../services/mcpService.js'
+
 export default {
   name: 'Poems',
   data() {
@@ -107,25 +109,12 @@ export default {
       selectedCategory: '',
       currentPage: 1,
       poemsPerPage: 10,
-      poems: [
-        // 这里放置诗词数据，与之前的PoetryView.vue类似
-        {
-          id: 1,
-          title: '静夜思',
-          author: '李白',
-          dynasty: '唐',
-          category: 'love',
-          tags: ['思乡', '明月'],
-          content: [
-            '床前明月光，',
-            '疑是地上霜。',
-            '举头望明月，',
-            '低头思故乡。'
-          ]
-        },
-        // 更多诗词数据...
-      ]
+      poems: [],
+      loading: true
     }
+  },
+  async mounted() {
+    await this.loadPoems()
   },
   computed: {
     filteredPoems() {
@@ -163,6 +152,26 @@ export default {
     }
   },
   methods: {
+    async loadPoems() {
+      try {
+        this.loading = true
+        const poemsData = await mcpService.getPoems()
+        this.poems = poemsData.map(poem => ({
+          id: poem.id,
+          title: poem.title,
+          author: poem.author,
+          dynasty: poem.dynasty,
+          category: poem.category,
+          tags: poem.tags || [],
+          content: poem.content ? poem.content.split('\n').filter(line => line.trim()) : []
+        }))
+      } catch (error) {
+        console.error('加载诗词数据失败:', error)
+        this.poems = []
+      } finally {
+        this.loading = false
+      }
+    },
     goToPage(page) {
       this.currentPage = page;
       window.scrollTo(0, 0);
