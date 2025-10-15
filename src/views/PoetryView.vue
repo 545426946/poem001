@@ -20,6 +20,7 @@
           <li><a href="#songci" :class="{ active: activeSection === 'songci' }" @click="setActiveSection('songci')">宋词</a></li>
           <li><a href="#gushi" :class="{ active: activeSection === 'gushi' }" @click="setActiveSection('gushi')">古诗</a></li>
           <li><a href="#about" :class="{ active: activeSection === 'about' }" @click="setActiveSection('about')">关于</a></li>
+          <li><router-link to="/login" class="login-link">登录/注册</router-link></li>
         </ul>
       </div>
     </nav>
@@ -542,6 +543,19 @@ export default {
   width: 30px;
   height: 2px;
   background: #8B4513;
+}
+
+.login-link {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  color: white !important;
+  border-radius: 20px;
+  padding: 8px 16px;
+  transition: all 0.3s ease;
+}
+
+.login-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
 }
 
 /* 主布局 */
