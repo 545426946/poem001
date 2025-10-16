@@ -35,8 +35,13 @@ const routes = [
     props: true
   },
   {
+    path: '/appreciation',
+    name: 'AppreciationList',
+    component: Appreciation
+  },
+  {
     path: '/appreciation/:id',
-    name: 'Appreciation',
+    name: 'AppreciationDetail',
     component: Appreciation,
     props: true
   },

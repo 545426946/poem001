@@ -1,10 +1,11 @@
 /**
- * MCP服务层
+ * MCP服务层 - 诗词赏析平台
  * 提供基于Supabase MCP的业务服务接口
  */
 
 import supabaseMCP from '../config/mcp-supabase.js'
-import { mockDataService } from './mockDataService.js'
+import { fallbackPoems, fallbackPoets } from '../data/poems.js'
+import { enrichedPoemsData } from '../data/enriched-poems.js'
 
 class MCPService {
   constructor() {
@@ -26,142 +27,12 @@ class MCPService {
     }
   }
 
-  // 用户管理服务
-  async getUserProfile(userId) {
-    try {
-      if (this.initialized) {
-        const result = await this.mcp.query('users', {
-          where: { id: userId },
-          limit: 1
-        })
-        
-        if (result.success && result.data.length > 0) {
-          return result.data[0]
-        }
-      }
-      
-      // 回退到模拟数据
-      return await mockDataService.getUserProfile(userId)
-    } catch (error) {
-      console.error('获取用户档案失败:', error)
-      return await mockDataService.getUserProfile(userId)
-    }
-  }
-
-  // 学生数据服务
-  async getStudentData(studentId) {
-    try {
-      if (this.initialized) {
-        const result = await this.mcp.query('students', {
-          where: { id: studentId },
-          limit: 1
-        })
-        
-        if (result.success && result.data.length > 0) {
-          return result.data[0]
-        }
-      }
-      
-      return await mockDataService.getStudentProfile(studentId)
-    } catch (error) {
-      console.error('获取学生数据失败:', error)
-      return await mockDataService.getStudentProfile(studentId)
-    }
-  }
-
-  // 教师数据服务
-  async getTeacherData(teacherId) {
-    try {
-      if (this.initialized) {
-        const result = await this.mcp.query('teachers', {
-          where: { id: teacherId },
-          limit: 1
-        })
-        
-        if (result.success && result.data.length > 0) {
-          return result.data[0]
-        }
-      }
-      
-      return await mockDataService.getTeacherProfile(teacherId)
-    } catch (error) {
-      console.error('获取教师数据失败:', error)
-      return await mockDataService.getTeacherProfile(teacherId)
-    }
-  }
-
-  // 班级管理服务
-  async getClassData(classId) {
-    try {
-      if (this.initialized) {
-        const result = await this.mcp.query('classes', {
-          where: { id: classId },
-          limit: 1
-        })
-        
-        if (result.success && result.data.length > 0) {
-          return result.data[0]
-        }
-      }
-      
-      return await mockDataService.getClass(classId)
-    } catch (error) {
-      console.error('获取班级数据失败:', error)
-      return await mockDataService.getClass(classId)
-    }
-  }
-
-  // 学习活动记录
-  async recordLearningActivity(activityData) {
-    try {
-      if (this.initialized) {
-        const result = await this.mcp.insert('student_learning_activities', {
-          ...activityData,
-          created_at: new Date().toISOString()
-        })
-        
-        if (result.success) {
-          return result.data
-        }
-      }
-      
-      // 模拟记录
-      console.log('学习活动记录(模拟):', activityData)
-      return { id: Date.now(), ...activityData }
-    } catch (error) {
-      console.error('记录学习活动失败:', error)
-      return null
-    }
-  }
-
-  // 获取学习进度
-  async getLearningProgress(studentId, limit = 50) {
-    try {
-      if (this.initialized) {
-        const result = await this.mcp.query('student_learning_activities', {
-          where: { student_id: studentId },
-          orderBy: { column: 'created_at', ascending: false },
-          limit
-        })
-        
-        if (result.success) {
-          return result.data
-        }
-      }
-      
-      return await mockDataService.getLearningProgress(studentId)
-    } catch (error) {
-      console.error('获取学习进度失败:', error)
-      return []
-    }
-  }
-
-  // 诗歌数据服务
-  async getPoemsData(category = 'all', limit = null) {
+  // 获取诗词数据
+  async getPoems(category = 'all', limit = null) {
     try {
       if (this.initialized) {
         let queryOptions = {
-          orderBy: { column: 'popularity', ascending: false },
+          orderBy: { column: 'created_at', ascending: false },
           limit: limit || 100
         }
         
@@ -176,98 +47,132 @@ class MCPService {
         }
       }
       
-      return await mockDataService.getPoems(category, limit)
-    } catch (error) {
-      console.error('获取诗歌数据失败:', error)
-      return await mockDataService.getPoems(category, limit)
-    }
-  }
-
-  // 统计分析服务
-  async getAnalyticsData(type, filters = {}) {
-    try {
-      if (this.initialized) {
-        // 根据类型执行不同的分析查询
-        switch (type) {
-          case 'college_overview':
-            return await this.getCollegeOverview()
-          case 'teacher_stats':
-            return await this.getTeacherStats(filters.teacherId)
-          case 'student_progress':
-            return await this.getStudentProgress(filters.studentId)
-          default:
-            throw new Error(`未知的分析类型: ${type}`)
-        }
+      // 回退到丰富数据
+      let poems = [...fallbackPoems, ...enrichedPoemsData]
+      if (category !== 'all') {
+        poems = poems.filter(poem => poem.category === category)
       }
-      
-      // 回退到模拟数据
-      return await mockDataService.getAnalyticsData(type, filters)
+      if (limit) {
+        poems = poems.slice(0, limit)
+      }
+      return poems
     } catch (error) {
-      console.error('获取分析数据失败:', error)
-      return await mockDataService.getAnalyticsData(type, filters)
+      console.error('获取诗词数据失败:', error)
+      // 回退到丰富数据
+      let poems = [...fallbackPoems, ...enrichedPoemsData]
+      if (category !== 'all') {
+        poems = poems.filter(poem => poem.category === category)
+      }
+      if (limit) {
+        poems = poems.slice(0, limit)
+      }
+      return poems
     }
   }
 
-  // 学院概览数据
-  async getCollegeOverview() {
+  // 获取诗人数据
+  async getPoets(dynasty = 'all', limit = null) {
     try {
       if (this.initialized) {
-        // 获取实时统计数据
-        const [studentsCount, teachersCount, classesCount] = await Promise.all([
-          this.mcp.query('students', { select: 'count' }),
-          this.mcp.query('teachers', { select: 'count' }),
-          this.mcp.query('classes', { select: 'count' })
-        ])
+        let queryOptions = {
+          orderBy: { column: 'name', ascending: true },
+          limit: limit || 100
+        }
         
-        return {
-          totalStudents: studentsCount.success ? studentsCount.data[0].count : 1600,
-          totalTeachers: teachersCount.success ? teachersCount.data[0].count : 45,
-          activeClasses: classesCount.success ? classesCount.data[0].count : 32,
-          avgCompletion: 78, // 需要复杂计算
-          highRiskStudents: 128, // 需要复杂计算
-          totalPoemsStudied: 24000 // 需要复杂计算
+        if (dynasty !== 'all') {
+          queryOptions.where = { dynasty }
         }
-      }
-      
-      return await mockDataService.getCollegeOverview()
-    } catch (error) {
-      console.error('获取学院概览失败:', error)
-      return await mockDataService.getCollegeOverview()
-    }
-  }
-
-  // RAG知识检索
-  async searchKnowledge(query, options = {}) {
-    try {
-      if (this.initialized) {
-        const result = await this.mcp.ragSearch(query, options)
+        
+        const result = await this.mcp.query('poets', queryOptions)
         
         if (result.success) {
           return result.data
         }
       }
       
-      // 模拟RAG搜索
-      return await mockDataService.searchKnowledge(query, options)
+      // 回退到丰富诗人数据
+      const enrichedPoets = [
+        { id: 1, name: '李白', dynasty: '唐代', style: '浪漫主义', description: '诗仙，唐代伟大的浪漫主义诗人。' },
+        { id: 2, name: '杜甫', dynasty: '唐代', style: '现实主义', description: '诗圣，唐代伟大的现实主义诗人。' },
+        { id: 3, name: '苏轼', dynasty: '宋代', style: '豪放派', description: '宋代文学巨匠，诗词文书画俱佳。' },
+        { id: 4, name: '李清照', dynasty: '宋代', style: '婉约派', description: '宋代著名女词人，婉约词派的代表。' },
+        { id: 5, name: '王维', dynasty: '唐代', style: '山水田园', description: '诗佛，唐代山水田园诗派的代表。' },
+        { id: 6, name: '白居易', dynasty: '唐代', style: '现实主义', description: '唐代伟大的现实主义诗人，作品通俗易懂。' },
+        { id: 7, name: '辛弃疾', dynasty: '宋代', style: '豪放派', description: '南宋爱国词人，豪放词派的代表。' },
+        { id: 8, name: '陆游', dynasty: '宋代', style: '爱国诗', description: '南宋爱国诗人，作品充满爱国情怀。' },
+        { id: 9, name: '孟浩然', dynasty: '唐代', style: '山水田园', description: '唐代山水田园诗派的代表诗人。' },
+        { id: 10, name: '王之涣', dynasty: '唐代', style: '边塞诗', description: '唐代边塞诗派的代表诗人。' }
+      ]
+      
+      let poets = enrichedPoets
+      if (dynasty !== 'all') {
+        poets = poets.filter(poet => poet.dynasty === dynasty)
+      }
+      if (limit) {
+        poets = poets.slice(0, limit)
+      }
+      return poets
     } catch (error) {
-      console.error('知识检索失败:', error)
+      console.error('获取诗人数据失败:', error)
+      // 回退到丰富诗人数据
+      const enrichedPoets = [
+        { id: 1, name: '李白', dynasty: '唐代', style: '浪漫主义', description: '诗仙，唐代伟大的浪漫主义诗人。' },
+        { id: 2, name: '杜甫', dynasty: '唐代', style: '现实主义', description: '诗圣，唐代伟大的现实主义诗人。' },
+        { id: 3, name: '苏轼', dynasty: '宋代', style: '豪放派', description: '宋代文学巨匠，诗词文书画俱佳。' },
+        { id: 4, name: '李清照', dynasty: '宋代', style: '婉约派', description: '宋代著名女词人，婉约词派的代表。' },
+        { id: 5, name: '王维', dynasty: '唐代', style: '山水田园', description: '诗佛，唐代山水田园诗派的代表。' },
+        { id: 6, name: '白居易', dynasty: '唐代', style: '现实主义', description: '唐代伟大的现实主义诗人，作品通俗易懂。' },
+        { id: 7, name: '辛弃疾', dynasty: '宋代', style: '豪放派', description: '南宋爱国词人，豪放词派的代表。' },
+        { id: 8, name: '陆游', dynasty: '宋代', style: '爱国诗', description: '南宋爱国诗人，作品充满爱国情怀。' },
+        { id: 9, name: '孟浩然', dynasty: '唐代', style: '山水田园', description: '唐代山水田园诗派的代表诗人。' },
+        { id: 10, name: '王之涣', dynasty: '唐代', style: '边塞诗', description: '唐代边塞诗派的代表诗人。' }
+      ]
+      
+      let poets = enrichedPoets
+      if (dynasty !== 'all') {
+        poets = poets.filter(poet => poet.dynasty === dynasty)
+      }
+      if (limit) {
+        poets = poets.slice(0, limit)
+      }
+      return poets
+    }
+  }
+
+  // 获取用户数据
+  async getUsers(limit = null) {
+    try {
+      if (this.initialized) {
+        const result = await this.mcp.query('users', {
+          orderBy: { column: 'created_at', ascending: false },
+          limit: limit || 100
+        })
+        
+        if (result.success) {
+          return result.data
+        }
+      }
+      
+      // 回退到空数据
+      return []
+    } catch (error) {
+      console.error('获取用户数据失败:', error)
       return []
     }
   }
 
-  // 实时订阅服务
-  subscribeToUpdates(channel, event, callback) {
+  // 通用查询方法
+  async query(table, options = {}) {
     try {
       if (this.initialized) {
-        return this.mcp.subscribe(channel, event, callback)
+        return await this.mcp.query(table, options)
       }
       
-      // 模拟订阅
-      console.log(`模拟订阅: ${channel}.${event}`)
-      return { unsubscribe: () => {} }
+      // 回退到空数据
+      return { success: true, data: [] }
     } catch (error) {
-      console.error('订阅失败:', error)
-      return { unsubscribe: () => {} }
+      console.error(`查询失败 [${table}]:`, error)
+      return { success: false, error: error.message }
     }
   }
 

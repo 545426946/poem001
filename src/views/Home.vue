@@ -76,7 +76,7 @@
             <h4>{{ poem.title }}</h4>
             <p class="poem-author">{{ poem.author }}（{{ poem.dynasty }}）</p>
             <p class="poem-preview">{{ poem.preview }}</p>
-            <router-link :to="`/poem/${poem.id}`" class="read-more">阅读全文</router-link>
+            <router-link :to="`/poetry/${poem.id}`" class="read-more">阅读全文</router-link>
           </div>
         </div>
       </div>
@@ -112,44 +112,39 @@
 </template>
 
 <script>
+import mcpService from '../services/mcpService.js'
+
 export default {
   name: 'Home',
   data() {
     return {
       showAdminSection: true, // 临时设置为true，实际应该根据用户角色判断
-      popularPoems: [
-        {
-          id: 1,
-          title: '静夜思',
-          author: '李白',
-          dynasty: '唐',
-          preview: '床前明月光，疑是地上霜。举头望明月，低头思故乡。'
-        },
-        {
-          id: 2,
-          title: '春晓',
-          author: '孟浩然',
-          dynasty: '唐',
-          preview: '春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。'
-        },
-        {
-          id: 3,
-          title: '水调歌头·明月几时有',
-          author: '苏轼',
-          dynasty: '宋',
-          preview: '明月几时有？把酒问青天。不知天上宫阙，今夕是何年。'
-        },
-        {
-          id: 4,
-          title: '相思',
-          author: '王维',
-          dynasty: '唐',
-          preview: '红豆生南国，春来发几枝。愿君多采撷，此物最相思。'
-        }
-      ]
+      popularPoems: [],
+      loading: true
     }
   },
+  async mounted() {
+    await this.loadPopularPoems()
+  },
   methods: {
+    async loadPopularPoems() {
+      try {
+        this.loading = true
+        const poems = await mcpService.getPoems('all', 4)
+        this.popularPoems = poems.map(poem => ({
+          id: poem.id,
+          title: poem.title,
+          author: poem.author,
+          dynasty: poem.dynasty,
+          preview: poem.content ? poem.content.split('\n').slice(0, 2).join(' ') : '暂无内容'
+        }))
+      } catch (error) {
+        console.error('加载热门诗词失败:', error)
+        this.popularPoems = []
+      } finally {
+        this.loading = false
+      }
+    },
     showConfigInfo() {
       alert(`当前配置信息：
 - Supabase URL: ${import.meta.env.VITE_SUPABASE_URL || '未配置'}

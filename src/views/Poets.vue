@@ -69,6 +69,8 @@
 </template>
 
 <script>
+import mcpService from '../services/mcpService.js'
+
 export default {
   name: 'Poets',
   data() {
@@ -107,19 +109,91 @@ export default {
     async fetchPoets() {
       try {
         this.loading = true;
-        const { data, error } = await this.$supabase
-          .from('poets')
-          .select('*')
-          .order('name');
-          
-        if (error) throw error;
-        this.poets = data;
+        // 初始化MCP服务
+        await mcpService.initialize();
+        const poets = await mcpService.getPoets('all');
+        
+        if (poets && poets.length > 0) {
+          this.poets = poets.map(poet => ({
+            id: poet.id,
+            name: poet.name,
+            dynasty: poet.dynasty,
+            bio: poet.bio || `${poet.name}，${poet.dynasty}时期著名诗人`,
+            worksCount: poet.works_count || 0
+          }));
+        } else {
+          // 使用回退数据
+          this.poets = this.getFallbackPoets();
+        }
       } catch (err) {
         console.error('获取诗人数据失败:', err);
         this.error = '获取诗人数据失败，请检查网络连接';
+        // 使用回退数据
+        this.poets = this.getFallbackPoets();
       } finally {
         this.loading = false;
       }
+    },
+    
+    getFallbackPoets() {
+      return [
+        {
+          id: 1,
+          name: '李白',
+          dynasty: '唐',
+          bio: '唐代伟大的浪漫主义诗人，被誉为"诗仙"，作品豪放飘逸，想象丰富。',
+          worksCount: 1000
+        },
+        {
+          id: 2,
+          name: '杜甫',
+          dynasty: '唐',
+          bio: '唐代伟大的现实主义诗人，被誉为"诗圣"，作品沉郁顿挫，反映社会现实。',
+          worksCount: 1400
+        },
+        {
+          id: 3,
+          name: '苏轼',
+          dynasty: '宋',
+          bio: '宋代文学巨匠，诗词文书画俱佳，豪放词派的代表人物。',
+          worksCount: 2700
+        },
+        {
+          id: 4,
+          name: '李清照',
+          dynasty: '宋',
+          bio: '宋代著名女词人，婉约词派的代表，作品情感细腻，语言优美。',
+          worksCount: 60
+        },
+        {
+          id: 5,
+          name: '白居易',
+          dynasty: '唐',
+          bio: '唐代现实主义诗人，作品通俗易懂，关注民生疾苦。',
+          worksCount: 2800
+        },
+        {
+          id: 6,
+          name: '王维',
+          dynasty: '唐',
+          bio: '唐代山水田园诗人，诗中有画，画中有诗，意境优美。',
+          worksCount: 400
+        },
+        {
+          id: 7,
+          name: '辛弃疾',
+          dynasty: '宋',
+          bio: '宋代豪放派词人，作品气势雄浑，充满爱国热情。',
+          worksCount: 600
+        },
+        {
+          id: 8,
+          name: '陆游',
+          dynasty: '宋',
+          bio: '宋代爱国诗人，作品充满忧国忧民的情怀。',
+          worksCount: 9000
+        }
+      ];
     }
   }
 }

@@ -76,7 +76,7 @@
               <div class="poem-tags">
                 <span v-for="tag in poem.tags" :key="tag" class="tag">{{ tag }}</span>
               </div>
-              <router-link :to="`/poem/${poem.id}`" class="read-more">阅读全文</router-link>
+              <router-link :to="`/poetry/${poem.id}`" class="read-more">阅读全文</router-link>
             </div>
           </div>
         </div>
@@ -156,22 +156,79 @@ export default {
       try {
         this.loading = true
         const poemsData = await mcpService.getPoems()
-        this.poems = poemsData.map(poem => ({
-          id: poem.id,
-          title: poem.title,
-          author: poem.author,
-          dynasty: poem.dynasty,
-          category: poem.category,
-          tags: poem.tags || [],
-          content: poem.content ? poem.content.split('\n').filter(line => line.trim()) : []
-        }))
+        if (poemsData && poemsData.length > 0) {
+          this.poems = poemsData.map(poem => ({
+            id: poem.id,
+            title: poem.title,
+            author: poem.author,
+            dynasty: poem.dynasty,
+            category: poem.category,
+            tags: poem.tags || [],
+            content: poem.content ? poem.content.split('\n').filter(line => line.trim()) : []
+          }))
+        } else {
+          // 使用回退数据
+          this.poems = this.getFallbackPoems()
+        }
       } catch (error) {
         console.error('加载诗词数据失败:', error)
-        this.poems = []
+        // 使用回退数据
+        this.poems = this.getFallbackPoems()
       } finally {
         this.loading = false
       }
     },
+    
+    getFallbackPoems() {
+      return [
+        {
+          id: 1,
+          title: "静夜思",
+          author: "李白",
+          dynasty: "唐",
+          category: "landscape",
+          tags: ["思乡", "月亮", "夜晚"],
+          content: ["床前明月光", "疑是地上霜", "举头望明月", "低头思故乡"]
+        },
+        {
+          id: 2,
+          title: "春晓",
+          author: "孟浩然",
+          dynasty: "唐",
+          category: "landscape",
+          tags: ["春天", "自然", "清晨"],
+          content: ["春眠不觉晓", "处处闻啼鸟", "夜来风雨声", "花落知多少"]
+        },
+        {
+          id: 3,
+          title: "登鹳雀楼",
+          author: "王之涣",
+          dynasty: "唐",
+          category: "landscape",
+          tags: ["登高", "望远", "哲理"],
+          content: ["白日依山尽", "黄河入海流", "欲穷千里目", "更上一层楼"]
+        },
+        {
+          id: 4,
+          title: "相思",
+          author: "王维",
+          dynasty: "唐",
+          category: "love",
+          tags: ["爱情", "思念", "红豆"],
+          content: ["红豆生南国", "春来发几枝", "愿君多采撷", "此物最相思"]
+        },
+        {
+          id: 5,
+          title: "江雪",
+          author: "柳宗元",
+          dynasty: "唐",
+          category: "landscape",
+          tags: ["冬天", "孤独", "雪景"],
+          content: ["千山鸟飞绝", "万径人踪灭", "孤舟蓑笠翁", "独钓寒江雪"]
+        }
+      ]
+    },
+    
     goToPage(page) {
       this.currentPage = page;
       window.scrollTo(0, 0);

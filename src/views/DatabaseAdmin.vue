@@ -151,6 +151,9 @@ export default {
     const checkConnection = async () => {
       checkingConnection.value = true
       try {
+        // 确保MCP服务已初始化
+        await mcpService.initialize()
+        
         const health = await mcpService.healthCheck()
         connectionStatus.value = {
           class: health.healthy ? 'success' : 'error',
@@ -172,6 +175,9 @@ export default {
     const checkTables = async () => {
       checkingTables.value = true
       try {
+        // 确保MCP服务已初始化
+        await mcpService.initialize()
+        
         const tableResults = []
         let healthyTables = 0
         
@@ -291,6 +297,9 @@ export default {
       }
 
       try {
+        // 确保MCP服务已初始化
+        await mcpService.initialize()
+        
         const result = await mcpService.query(selectedTable.value, {
           limit: recordLimit.value
         })
