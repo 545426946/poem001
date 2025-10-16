@@ -1,9 +1,37 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// 环境变量验证和回退机制
+const validateSupabaseConfig = () => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Supabase环境变量未配置，使用模拟模式')
+    return null
+  }
+  
+  if (!supabaseUrl.startsWith('https://') || supabaseAnonKey.length < 20) {
+    console.warn('Supabase配置无效，使用模拟模式')
+    return null
+  }
+  
+  return { supabaseUrl, supabaseAnonKey }
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const config = validateSupabaseConfig()
+
+// 创建Supabase客户端或返回模拟客户端
+export const supabase = config ? createClient(config.supabaseUrl, config.supabaseAnonKey) : {
+  // 模拟Supabase客户端
+  from: () => ({
+    select: () => ({
+      textSearch: () => ({
+        limit: () => Promise.resolve({ data: [], error: null })
+      })
+    })
+  }),
+  rpc: () => Promise.resolve({ data: [], error: null })
+}
 
 // 数据表结构定义
 export const TABLES = {

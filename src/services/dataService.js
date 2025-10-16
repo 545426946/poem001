@@ -1,10 +1,27 @@
 import { supabase, TABLES } from '../config/supabase'
 import { mockDataService } from './mockDataService'
 import mcpService from './mcpService.js'
+import { validateEnv } from '../utils/env.js'
 
 class DataService {
   // 学生相关操作
   async getStudentProfile(studentId) {
+    // 检查环境变量是否有效
+    if (!validateEnv()) {
+      console.warn('环境变量无效，使用模拟数据')
+      return {
+        id: studentId,
+        name: '张三',
+        class: '高一(1)班',
+        progress: 75,
+        studiedPoems: 15,
+        avgScore: 88,
+        totalPoems: 20,
+        weeklyGoal: 3,
+        currentStreak: 7
+      }
+    }
+    
     try {
       // 优先使用MCP服务
       return await mcpService.getStudentData(studentId)
