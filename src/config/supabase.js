@@ -5,6 +5,11 @@ const validateSupabaseConfig = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
   
+  console.log('Supabase配置检查:', {
+    url: supabaseUrl ? '已设置' : '未设置',
+    key: supabaseAnonKey ? '已设置' : '未设置'
+  })
+  
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('Supabase环境变量未配置，使用模拟模式')
     return null
@@ -15,6 +20,7 @@ const validateSupabaseConfig = () => {
     return null
   }
   
+  console.log('Supabase配置有效，使用真实数据库连接')
   return { supabaseUrl, supabaseAnonKey }
 }
 
