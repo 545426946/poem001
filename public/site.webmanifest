@@ -1,0 +1,16 @@
+{
+  "name": "诗词赏析平台",
+  "short_name": "诗词赏析",
+  "description": "AI驱动的诗歌赏析智慧学习与管理平台",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8B4513",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ]
+}
