@@ -10,17 +10,14 @@ const validateSupabaseConfig = () => {
     key: supabaseAnonKey ? '已设置' : '未设置'
   })
   
+  // 更宽松的验证，允许在Netlify上使用
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('Supabase环境变量未配置，使用模拟模式')
     return null
   }
   
-  if (!supabaseUrl.startsWith('https://') || supabaseAnonKey.length < 20) {
-    console.warn('Supabase配置无效，使用模拟模式')
-    return null
-  }
-  
-  console.log('Supabase配置有效，使用真实数据库连接')
+  // 即使配置看起来不太完美也尝试连接
+  console.log('尝试使用Supabase配置连接数据库')
   return { supabaseUrl, supabaseAnonKey }
 }
 
