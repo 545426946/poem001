@@ -1,164 +1,99 @@
-# 启明星 - AI驱动的诗歌赏析智慧学习与管理平台
+# 诗词赏析平台 - Vercel部署指南
 
-基于L.I.G.H.T.架构设计的现代化诗歌学习平台，为河北师范大学软件学院提供智能化的诗歌教学管理解决方案。
+## 项目概述
+基于Vue 3 + Vite + Supabase构建的诗词赏析平台，提供诗词库、诗人信息、深度赏析等功能。
 
-## 🌟 项目特色
+## Vercel部署步骤
 
-- **AI驱动学习**: 集成智能AI助手，提供个性化诗歌分析和学习建议
-- **三级AI架构**: 学生级、教师级、学院级AI智能体协同工作
-- **实时数据洞察**: 基于Supabase的实时数据同步和可视化分析
-- **现代化技术栈**: React + Vite + TailwindCSS + Supabase
-- **响应式设计**: 完美适配桌面端和移动端
+### 1. 准备部署文件
+确保以下文件已提交到GitHub：
+- `vercel.json` - Vercel配置文件
+- `package.json` - 项目依赖配置
+- 所有源代码文件
 
-## 🏗️ 技术架构
+### 2. 在Vercel配置环境变量
+在Vercel项目设置中，添加以下环境变量：
 
-### L.I.G.H.T. 架构模式
-- **L (Lean Backend)**: 精简后端API，专注核心业务逻辑
-- **I (Intelligent Frontend)**: 智能化前端，集成AI交互能力
-- **G (Git-driven Workflow)**: Git驱动的开发流程和版本控制
-- **H (Hyper-scalable Data)**: 超大规模数据层，支持向量搜索
-- **T (Templated AI Agents)**: 模板化AI智能体，支持快速部署
+```
+VITE_SUPABASE_URL=https://pebojoawdugipthkxxpe.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlYm9qb2F3ZHVnaXB0aGt4eHBlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDkyOTksImV4cCI6MjA3NjA4NTI5OX0.LKgN51CrKEv-8u453T042FKHiOwVaZ9QB0wMbXBzpKA
+VITE_APP_NAME=诗词赏析平台
+VITE_APP_VERSION=1.0.0
+```
 
-### 核心技术栈
-- **前端**: React 18, Vite, TailwindCSS, Lucide Icons
-- **后端**: Supabase (PostgreSQL + 实时引擎)
-- **AI服务**: 自定义AI服务层，支持RAG知识库检索
-- **部署**: Vercel/Netlify + Supabase
+### 3. 连接GitHub仓库到Vercel
+1. 访问 [Vercel控制台](https://vercel.com)
+2. 点击"New Project"
+3. 选择您的GitHub仓库
+4. 配置项目设置：
+   - Framework Preset: Vite
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Install Command: `npm install`
 
-## 🚀 快速开始
+### 4. 部署验证
+部署完成后，访问生成的Vercel域名，检查功能：
+- ✅ 首页加载正常
+- ✅ 诗词库页面显示数据
+- ✅ 诗人信息页面
+- ✅ 赏析文章页面
+- ✅ 诗词详情页面跳转
 
-### 环境要求
-- Node.js 16+
-- npm/yarn/pnpm
+## Supabase数据库配置
 
-### 安装依赖
+### 1. 确保数据库表结构
+在Supabase控制台中，确保以下表已创建：
+- `poems` - 诗词表
+- `poets` - 诗人表
+- `appreciations` - 赏析文章表
+
+### 2. 导入示例数据
+使用Supabase SQL编辑器执行以下SQL导入示例数据：
+
+```sql
+-- 导入诗词数据
+INSERT INTO poems (title, author, dynasty, content, category, tags) VALUES 
+('静夜思', '李白', '唐', '床前明月光，疑是地上霜。举头望明月，低头思故乡。', 'love', '{"思乡","明月"}'),
+('水调歌头', '苏轼', '宋', '明月几时有？把酒问青天。不知天上宫阙，今夕是何年。', 'philosophy', '{"中秋","明月"}');
+
+-- 导入诗人数据
+INSERT INTO poets (name, dynasty, biography, works_count) VALUES
+('李白', '唐', '唐代著名浪漫主义诗人，被誉为诗仙。', 1000),
+('苏轼', '宋', '北宋文学家、书画家，唐宋八大家之一。', 800);
+```
+
+### 3. 启用Row Level Security (RLS)
+确保表已启用RLS并配置适当的策略。
+
+## 故障排除
+
+### 常见问题
+1. **环境变量未生效**：检查Vercel环境变量名称和值是否正确
+2. **Supabase连接失败**：验证Supabase项目URL和匿名密钥
+3. **路由404错误**：确保Vercel配置了SPA回退路由
+
+### 调试步骤
+1. 检查浏览器控制台错误信息
+2. 验证Supabase网络请求是否成功
+3. 检查Vercel构建日志
+
+## 本地开发
 ```bash
+# 安装依赖
 npm install
-```
 
-### 环境配置
-复制 `.env.example` 为 `.env.local` 并配置相应参数：
-
-```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_OPENAI_API_KEY=your_openai_api_key (可选)
-```
-
-### 启动开发服务器
-```bash
+# 启动开发服务器
 npm run dev
+
+# 构建生产版本
+npm run build
+
+# 预览生产版本
+npm run preview
 ```
 
-访问 http://localhost:3000 查看应用
-
-## 📁 项目结构
-
-```
-src/
-├── components/          # React组件
-│   ├── StudentDashboard.jsx    # 学生工作台
-│   ├── TeacherDashboard.jsx    # 教师管理台
-│   ├── CollegeDashboard.jsx    # 学院大屏
-│   ├── Login.jsx               # 登录页面
-│   ├── Navigation.jsx         # 导航组件
-│   └── AIChatAssistant.jsx    # AI聊天助手
-├── contexts/           # React上下文
-│   └── AuthContext.jsx       # 认证上下文
-├── services/           # 业务服务
-│   ├── aiService.js           # AI服务
-│   └── dataService.js         # 数据服务
-├── config/            # 配置模块
-│   └── supabase.js           # Supabase配置
-└── index.css          # 全局样式
-```
-
-## 🎯 核心功能
-
-### 学生端功能
-- 📚 个性化诗歌学习计划
-- 🤖 AI智能诗歌分析助手
-- 📊 学习进度可视化
-- 🎯 智能学习推荐
-
-### 教师端功能
-- 👥 班级学情监控
-- ⚠️ 学生风险预警
-- 📈 教学数据分析
-- 💡 AI教学建议
-
-### 学院端功能
-- 🖥️ 全局数据大屏
-- 📋 多维度统计分析
-- 🔔 系统预警管理
-- 🎓 教学质量评估
-
-## 🔧 开发指南
-
-### 代码规范
-- 使用ESLint进行代码检查
-- 遵循React Hooks最佳实践
-- 组件采用函数式编程风格
-- 使用TypeScript进行类型检查（计划中）
-
-### 数据模型
-项目使用Supabase作为后端，主要数据表包括：
-- `users` - 用户信息
-- `students` - 学生档案
-- `teachers` - 教师信息
-- `courses` - 课程信息
-- `enrollments` - 选课记录
-- `learning_activities` - 学习活动记录
-- `knowledge_base` - RAG知识库
-
-### AI集成
-平台支持多种AI服务集成：
-- OpenAI GPT系列
-- 本地部署的LLM模型
-- 自定义AI服务端点
-
-## 📈 部署指南
-
-### 生产环境部署
-1. 配置生产环境变量
-2. 构建生产版本：`npm run build`
-3. 部署到Vercel/Netlify等平台
-4. 配置Supabase生产环境
-
-### 数据库迁移
-使用Supabase的迁移工具进行数据库结构更新：
-
-```bash
-# 安装Supabase CLI
-npm install -g supabase
-
-# 初始化迁移
-supabase migration new init
-```
-
-## 🤝 贡献指南
-
-我们欢迎社区贡献！请遵循以下流程：
-
-1. Fork本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启Pull Request
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
-
-## 🙏 致谢
-
-感谢以下开源项目的支持：
-- [React](https://reactjs.org/)
-- [Vite](https://vitejs.dev/)
-- [TailwindCSS](https://tailwindcss.com/)
-- [Supabase](https://supabase.com/)
-- [Lucide Icons](https://lucide.dev/)
-
----
-
-**启明星项目组** - 致力于通过AI技术提升诗歌教育质量 📚✨
+## 技术支持
+如有部署问题，请检查：
+- Vercel文档：https://vercel.com/docs
+- Supabase文档：https://supabase.com/docs
+- 项目GitHub Issues
