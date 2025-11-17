@@ -3,7 +3,7 @@
  * 提供基于Supabase MCP的业务服务接口
  */
 
-import supabaseMCP from '../config/mcp-supabase.js'
+import supabaseMCP from '../config/supabase.js'
 import { fallbackPoems, fallbackPoets } from '../data/poems.js'
 import { enrichedPoemsData } from '../data/enriched-poems.js'
 
