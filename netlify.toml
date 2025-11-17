@@ -1,0 +1,15 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+  VITE_SUPABASE_URL = "https://pebojoawdugipthkxxpe.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlYm9qb2F3ZHVnaXB0aGt4eHBlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDkyOTksImV4cCI6MjA3NjA4NTI5OX0.LKgN51CrKEv-8u453T042FKHiOwVaZ9QB0wMbXBzpKA"
+  VITE_APP_NAME = "诗词赏析平台"
+  VITE_APP_VERSION = "1.0.0"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
