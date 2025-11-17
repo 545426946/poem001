@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
+// 单例模式，避免多个GoTrueClient实例
+let supabaseInstance = null
+
 // 模拟Supabase客户端（降级模式）
 const createMockSupabase = () => {
   console.log('🚧 使用Supabase模拟模式（离线模式）')
@@ -10,7 +13,8 @@ const createMockSupabase = () => {
           limit: () => Promise.resolve({ data: [], error: null })
         }),
         eq: () => Promise.resolve({ data: [], error: null }),
-        single: () => Promise.resolve({ data: null, error: null })
+        single: () => Promise.resolve({ data: null, error: null }),
+        limit: () => Promise.resolve({ data: [], error: null })
       }),
       insert: () => Promise.resolve({ data: [], error: null }),
       update: () => Promise.resolve({ data: [], error: null }),
@@ -55,10 +59,10 @@ const validateSupabaseConfig = () => {
 const testSupabaseConnection = async (supabaseClient) => {
   try {
     console.log('🔗 测试Supabase连接...')
+    // 使用简单的ping测试，避免访问表
     const { data, error } = await supabaseClient
       .from('users')
-      .select('count')
-      .limit(1)
+      .select('count', { count: 'exact', head: true })
     
     if (error) {
       console.error('❌ Supabase连接测试失败:', error.message)
@@ -73,45 +77,52 @@ const testSupabaseConnection = async (supabaseClient) => {
   }
 }
 
-// 创建有连接测试的Supabase客户端
-const createSupabaseClient = async () => {
+// 创建Supabase客户端（单例模式）
+const createSupabaseClient = () => {
+  if (supabaseInstance) {
+    return supabaseInstance
+  }
+  
   const config = validateSupabaseConfig()
   
   if (!config) {
-    return createMockSupabase()
+    supabaseInstance = createMockSupabase()
+    return supabaseInstance
   }
   
-  const supabaseClient = createClient(config.supabaseUrl, config.supabaseAnonKey, {
+  // 创建实际的Supabase客户端，禁用auto-restore
+  supabaseInstance = createClient(config.supabaseUrl, config.supabaseAnonKey, {
     auth: {
       autoRefreshToken: false,
-      persistSession: false
+      persistSession: false,
+      detectSessionInUrl: false
+    },
+    db: {
+      schema: 'public'
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'poetry-platform/1.0.0'
+      }
     }
   })
   
-  // 测试连接
-  const isConnected = await testSupabaseConnection(supabaseClient)
+  // 异步测试连接，但不阻塞客户端创建
+  testSupabaseConnection(supabaseInstance).then(isConnected => {
+    if (!isConnected) {
+      console.warn('⚠️ Supabase连接失败，切换到模拟模式')
+      supabaseInstance = createMockSupabase()
+    }
+  }).catch(err => {
+    console.warn('⚠️ Supabase连接测试异常，切换到模拟模式:', err.message)
+    supabaseInstance = createMockSupabase()
+  })
   
-  if (!isConnected) {
-    console.warn('⚠️ Supabase连接失败，切换到模拟模式')
-    return createMockSupabase()
-  }
-  
-  return supabaseClient
-}
-
-// 异步创建Supabase客户端
-let supabaseInstance = null
-const getSupabase = async () => {
-  if (!supabaseInstance) {
-    supabaseInstance = await createSupabaseClient()
-  }
   return supabaseInstance
 }
 
-// 导出异步获取的Supabase客户端
-export const supabase = {
-  get: getSupabase
-}
+// 获取Supabase客户端
+const supabase = createSupabaseClient()
 
 // 数据表结构定义
 export const TABLES = {
@@ -128,11 +139,10 @@ export const TABLES = {
   AI_AGENT_STATE: 'ai_agent_state'
 }
 
-// RAG知识库查询函数（兼容异步客户端）
+// RAG知识库查询函数（同步版本）
 export const searchKnowledgeBase = async (query, limit = 5) => {
   try {
-    const client = await supabase.get()
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from(TABLES.KNOWLEDGE_BASE)
       .select('*')
       .textSearch('content', query)
@@ -146,11 +156,10 @@ export const searchKnowledgeBase = async (query, limit = 5) => {
   }
 }
 
-// 向量搜索函数（兼容异步客户端）
+// 向量搜索函数（同步版本）
 export const vectorSearch = async (embedding, limit = 5) => {
   try {
-    const client = await supabase.get()
-    const { data, error } = await client
+    const { data, error } = await supabase
       .rpc('match_documents', {
         query_embedding: embedding,
         match_threshold: 0.7,
@@ -168,9 +177,8 @@ export const vectorSearch = async (embedding, limit = 5) => {
 // 检查Supabase连接状态
 export const checkConnectionStatus = async () => {
   try {
-    const client = await supabase.get()
     // 如果客户端是模拟模式，则连接失败
-    const isMock = !client.auth || typeof client.from !== 'function'
+    const isMock = !supabase.auth || typeof supabase.from !== 'function'
     return {
       connected: !isMock,
       mode: isMock ? 'offline' : 'online',
