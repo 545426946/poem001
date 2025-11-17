@@ -107,7 +107,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import mcpService from '../services/mcpService.js'
+import { supabase } from '../config/supabase.js'
 
 export default {
   name: 'DatabaseAdmin',
@@ -151,15 +151,22 @@ export default {
     const checkConnection = async () => {
       checkingConnection.value = true
       try {
-        // 确保MCP服务已初始化
-        await mcpService.initialize()
+        // 直接使用Supabase客户端测试连接，跳过MCP服务
+        const { data, error } = await supabase.from('users').select('count').limit(1)
         
-        const health = await mcpService.healthCheck()
-        connectionStatus.value = {
-          class: health.healthy ? 'success' : 'error',
-          message: health.healthy ? '✅ 连接正常' : `❌ 连接异常: ${health.message}`
+        if (error) {
+          connectionStatus.value = {
+            class: 'error',
+            message: `❌ 连接异常: ${error.message}`
+          }
+          addLog(`连接检查: 异常 - ${error.message}`, 'error')
+        } else {
+          connectionStatus.value = {
+            class: 'success',
+            message: '✅ 连接正常'
+          }
+          addLog('连接检查: 正常', 'success')
         }
-        addLog(`连接检查: ${health.healthy ? '正常' : '异常'}`, health.healthy ? 'success' : 'error')
       } catch (error) {
         connectionStatus.value = {
           class: 'error',
@@ -175,22 +182,29 @@ export default {
     const checkTables = async () => {
       checkingTables.value = true
       try {
-        // 确保MCP服务已初始化
-        await mcpService.initialize()
-        
         const tableResults = []
         let healthyTables = 0
         
         for (const tableName of tableNames) {
           try {
-            const result = await mcpService.query(tableName, { limit: 1 })
-            tableResults.push({
-              name: tableName,
-              count: result.success ? '有数据' : '空表',
-              status: result.success ? '正常' : '空表',
-              statusClass: result.success ? 'success' : 'warning'
-            })
-            if (result.success) healthyTables++
+            const { data, error } = await supabase.from(tableName).select('*').limit(1)
+            
+            if (error) {
+              tableResults.push({
+                name: tableName,
+                count: '错误',
+                status: '表不存在',
+                statusClass: 'error'
+              })
+            } else {
+              tableResults.push({
+                name: tableName,
+                count: data && data.length > 0 ? '有数据' : '空表',
+                status: '正常',
+                statusClass: 'success'
+              })
+              healthyTables++
+            }
           } catch (error) {
             tableResults.push({
               name: tableName,
@@ -297,21 +311,23 @@ export default {
       }
 
       try {
-        // 确保MCP服务已初始化
-        await mcpService.initialize()
-        
-        const result = await mcpService.query(selectedTable.value, {
-          limit: recordLimit.value
-        })
+        const { data, error } = await supabase
+          .from(selectedTable.value)
+          .select('*')
+          .limit(recordLimit.value)
 
-        if (result.success && result.data.length > 0) {
-          tableData.value = result.data
-          tableColumns.value = Object.keys(result.data[0])
-          addLog(`加载表 ${selectedTable.value} 数据成功，共 ${result.data.length} 条记录`, 'success')
+        if (error) {
+          tableData.value = []
+          tableColumns.value = []
+          addLog(`表 ${selectedTable.value} 查询失败: ${error.message}`, 'error')
+        } else if (data && data.length > 0) {
+          tableData.value = data
+          tableColumns.value = Object.keys(data[0])
+          addLog(`加载表 ${selectedTable.value} 数据成功，共 ${data.length} 条记录`, 'success')
         } else {
           tableData.value = []
           tableColumns.value = []
-          addLog(`表 ${selectedTable.value} 为空或查询失败`, 'warning')
+          addLog(`表 ${selectedTable.value} 为空`, 'warning')
         }
       } catch (error) {
         tableData.value = []
