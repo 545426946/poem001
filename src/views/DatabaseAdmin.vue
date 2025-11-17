@@ -151,21 +151,33 @@ export default {
     const checkConnection = async () => {
       checkingConnection.value = true
       try {
-        // 直接使用Supabase客户端测试连接，跳过MCP服务
-        const { data, error } = await supabase.from('users').select('count').limit(1)
+        // 使用新的异步Supabase客户端
+        const client = await supabase.get()
         
-        if (error) {
+        // 如果客户端是模拟模式
+        if (!client.auth || typeof client.from !== 'function') {
           connectionStatus.value = {
-            class: 'error',
-            message: `❌ 连接异常: ${error.message}`
+            class: 'warning',
+            message: '⚠️ 离线模式（模拟数据）'
           }
-          addLog(`连接检查: 异常 - ${error.message}`, 'error')
+          addLog('连接检查: 离线模式（模拟数据）', 'warning')
         } else {
-          connectionStatus.value = {
-            class: 'success',
-            message: '✅ 连接正常'
+          // 测试真实连接
+          const { data, error } = await client.from('users').select('count').limit(1)
+          
+          if (error) {
+            connectionStatus.value = {
+              class: 'error',
+              message: `❌ 连接异常: ${error.message}`
+            }
+            addLog(`连接检查: 异常 - ${error.message}`, 'error')
+          } else {
+            connectionStatus.value = {
+              class: 'success',
+              message: '✅ 连接正常'
+            }
+            addLog('连接检查: 正常', 'success')
           }
-          addLog('连接检查: 正常', 'success')
         }
       } catch (error) {
         connectionStatus.value = {
@@ -185,33 +197,49 @@ export default {
         const tableResults = []
         let healthyTables = 0
         
-        for (const tableName of tableNames) {
-          try {
-            const { data, error } = await supabase.from(tableName).select('*').limit(1)
-            
-            if (error) {
+        const client = await supabase.get()
+        
+        // 如果是模拟模式，显示所有表为离线状态
+        if (!client.auth || typeof client.from !== 'function') {
+          for (const tableName of tableNames) {
+            tableResults.push({
+              name: tableName,
+              count: '离线',
+              status: '离线模式',
+              statusClass: 'warning'
+            })
+          }
+          healthyTables = tableNames.length
+        } else {
+          // 真实模式：检查每个表
+          for (const tableName of tableNames) {
+            try {
+              const { data, error } = await client.from(tableName).select('*').limit(1)
+              
+              if (error) {
+                tableResults.push({
+                  name: tableName,
+                  count: '错误',
+                  status: '表不存在',
+                  statusClass: 'error'
+                })
+              } else {
+                tableResults.push({
+                  name: tableName,
+                  count: data && data.length > 0 ? '有数据' : '空表',
+                  status: '正常',
+                  statusClass: 'success'
+                })
+                healthyTables++
+              }
+            } catch (error) {
               tableResults.push({
                 name: tableName,
                 count: '错误',
                 status: '表不存在',
                 statusClass: 'error'
               })
-            } else {
-              tableResults.push({
-                name: tableName,
-                count: data && data.length > 0 ? '有数据' : '空表',
-                status: '正常',
-                statusClass: 'success'
-              })
-              healthyTables++
             }
-          } catch (error) {
-            tableResults.push({
-              name: tableName,
-              count: '错误',
-              status: '表不存在',
-              statusClass: 'error'
-            })
           }
         }
 
@@ -310,8 +338,9 @@ export default {
         return
       }
 
-      try {
-        const { data, error } = await supabase
+        try {
+        const client = await supabase.get()
+        const { data, error } = await client
           .from(selectedTable.value)
           .select('*')
           .limit(recordLimit.value)
