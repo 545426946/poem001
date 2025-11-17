@@ -107,7 +107,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { supabase } from '../config/supabase.js'
+import supabase from '../config/supabase.js'
 
 export default {
   name: 'DatabaseAdmin',

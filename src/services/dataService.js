@@ -1,4 +1,4 @@
-import { supabase, TABLES } from '../config/supabase'
+import supabase, { TABLES } from '../config/supabase.js'
 import { mockDataService } from './mockDataService'
 import mcpService from './mcpService.js'
 import { validateEnv } from '../utils/env.js'
